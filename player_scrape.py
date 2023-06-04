@@ -7,24 +7,28 @@ import csv
 
 
 def get_seasons_active(first, last):
+    """Returns list of seasons player was active"""
     driver.get(player_url 
                + f"{last[:1]}/{last[:5]}{first[:2]}01.html")
     
     table = driver.find_element(By.ID, 'per_game')
     seasons = [th.text for th in table.find_elements(By.XPATH, './/tbody/tr/th')]
 
-    #Removes duplicate seasons, becomes unordered
     return list(set(seasons))
 
 
 def save_season_games(first, last, type, flag):
+    """Scrapes and saves games stats for a single season.
+    
+    Gets regular and playoff (if applicable) game stats, then adds those stats
+    to separate regular and playoff csv. 
+    """
     if type == 'regular':
         type_id = 'pgl_basic'
 
     elif type == 'playoff':
         type_id = 'pgl_basic_playoffs'
 
-    #Checks if there is a playoff table that season
     if type == 'playoff':
         try:
             table = driver.find_element(By.ID, type_id)
@@ -33,7 +37,7 @@ def save_season_games(first, last, type, flag):
     
     table = driver.find_element(By.ID, type_id)
     headers = [th.text for th in table.find_elements(By.XPATH, './/thead/tr/th')]
-    headers.remove('Rk')          #Rank data ignored in game stat scraping
+    headers.remove('Rk')       #  Rank data ignored in game stat scraping
 
     games = []
     for row in table.find_elements(By.XPATH, './/tbody/tr'):
@@ -55,9 +59,11 @@ def save_season_games(first, last, type, flag):
 
 
 def get_career_games(player):
+    """Creates the URLs for each season the player was active and saves the game data 
+    """
     first, last = player.split()
     seasons = get_seasons_active(first, last)
-    _ = 0       # temp variable used to add csv header on first iteration only
+    _ = 0       #  Temp variable used to add csv header on first iteration only
     for season in seasons:
         driver.get(player_url 
                    + f"{last[:1]}/{last[:5]}{first[:2]}01/gamelog/" 
@@ -68,13 +74,11 @@ def get_career_games(player):
         save_season_games(first, last, 'regular', _)
         save_season_games(first, last, 'playoff', _)
 
-        #Increments so header stops being added
         _ += 1
 
     print(f"{last} scrape: success")
 
 
-#Various Lists/URLs for all players
 players = ['stephen curry',
            'lebron james',
            'jayson tatum',
@@ -88,7 +92,6 @@ player_url = "https://www.basketball-reference.com/players/"
 
 chromedriver_path = '/usr/bin/chromedriver'
 
-#Chrome options
 chrome_options = Options()
 chrome_options.add_argument('--headless')
 
@@ -98,4 +101,4 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 for player in players:
     get_career_games(player)
 
-driver.quit()    
+driver.quit()
