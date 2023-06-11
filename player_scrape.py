@@ -1,104 +1,105 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-import time
+from time import sleep
 import csv
 
+from active_players import get_active_players
 
-def get_seasons_active(first, last):
+
+def get_seasons_active(player):
     """Returns list of seasons player was active"""
-    driver.get(player_url 
-               + f"{last[:1]}/{last[:5]}{first[:2]}01.html")
+    chromedriver_path = '/usr/bin/chromedriver'
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    service = Service(chromedriver_path)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     
+    player_url = "https://www.basketball-reference.com/players/"
+    first, last = player.lower().split()
+    driver.get(player_url 
+               + f"{last[:1]}/{last[:5]}{first[:2]}01.html"
+               )
     table = driver.find_element(By.ID, 'per_game')
     seasons = [th.text for th in table.find_elements(By.XPATH, './/tbody/tr/th')]
-
+    driver.quit()
     return list(set(seasons))
 
 
-def save_season_games(first, last, type, flag):
-    """Scrapes and saves games stats for a single season.
+def get_career_games(player, seasons):
+    """Scrapes and returns regular and playoff games stats of entire career."""
+    chromedriver_path = '/usr/bin/chromedriver'
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    service = Service(chromedriver_path)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     
-    Gets regular and playoff (if applicable) game stats, then adds those stats
-    to separate regular and playoff csv. 
-    """
-    if type == 'regular':
-        type_id = 'pgl_basic'
-
-    elif type == 'playoff':
-        type_id = 'pgl_basic_playoffs'
-
-    if type == 'playoff':
-        try:
-            table = driver.find_element(By.ID, type_id)
-        except:
-            return
-    
-    table = driver.find_element(By.ID, type_id)
-    headers = [th.text for th in table.find_elements(By.XPATH, './/thead/tr/th')]
-    headers.remove('Rk')       #  Rank data ignored in game stat scraping
-
-    games = []
-    for row in table.find_elements(By.XPATH, './/tbody/tr'):
-        row_data = [td.text for td in row.find_elements(By.XPATH, './/td')]
-        if row_data:
-            games.append(row_data)
-
-    if flag == 0:
-        with open(f'stats/{last[:5]}{first[:2]}_{type}_games.csv', 'w', newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(headers)
-            f.close()
-
-    for game in games:
-        with open(f'stats/{last[:5]}{first[:2]}_{type}_games.csv', 'a', newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(game)
-            f.close()
-
-
-def get_career_games(player):
-    """Creates the URLs for each season the player was active and saves the game data 
-    """
-    first, last = player.split()
-    seasons = get_seasons_active(first, last)
-    _ = 0       #  Temp variable used to add csv header on first iteration only
+    _ = 0       #  Temp variable grabs csv header on first iteration only
+    player_url = "https://www.basketball-reference.com/players/"
+    first, last = player.lower().split()
+    r_games = []
+    p_games = []
     for season in seasons:
         driver.get(player_url 
                    + f"{last[:1]}/{last[:5]}{first[:2]}01/gamelog/" 
-                   + str(int(season[:4])+1))
+                   + str(int(season[:4])+1)
+                   )
+        sleep(2)     #Avoids more than 20 API reqs per min
+        
+        r_table = driver.find_element(By.ID, 'pgl_basic')
+        for row in r_table.find_elements(By.XPATH, './/tbody/tr'):
+            row_data = [td.text for td in row.find_elements(By.XPATH, './/td')]
+            if row_data:
+                r_games.append(row_data)
+                
+        if driver.find_elements(By.ID, 'pgl_basic_playoffs'):
+            p_table = driver.find_element(By.ID, 'pgl_basic_playoffs')
+            for row in p_table.find_elements(By.XPATH, './/tbody/tr'):
+                row_data = [td.text for td in row.find_elements(By.XPATH, './/td')]
+                if row_data:
+                    p_games.append(row_data)
 
-        time.sleep(2)
-
-        save_season_games(first, last, 'regular', _)
-        save_season_games(first, last, 'playoff', _)
-
+        if _ == 0:
+            head = [th.text for th in r_table.find_elements(By.XPATH, './/thead/tr/th')]
+            head.remove('Rk')       #  Rank data ignored in game stat scraping
         _ += 1
+    driver.quit()
+    print(f'{last} scrape success')
+    return head, r_games, p_games
 
-    print(f"{last} scrape: success")
+
+def save_career_games(player, header, regular_games, playoff_games):
+    """Creates separate csv for regular and playoff career games"""
+    first, last = player.lower().split()
+    r_path = f'stats/{last[:5]}{first[:2]}_regular_games.csv'
+    p_path = f'stats/{last[:5]}{first[:2]}_playoff_games.csv'
+    
+    with open(r_path, 'w', newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        f.close()
+    for game in regular_games:
+        with open(r_path, 'a', newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(game)
+            f.close()
+    if playoff_games:
+        with open(p_path, 'w', newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(header)
+            f.close()
+        for game in playoff_games:
+            with open(p_path, 'a', newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(game)
+                f.close()
+    print(f'{last} csv created')
 
 
-players = ['stephen curry',
-           'lebron james',
-           'jayson tatum',
-           'jimmy butler', 
-           'nikola jokic',
-           'kevin durant',
-           'joel embiid',
-           'giannis antetokounmpo']
-
-player_url = "https://www.basketball-reference.com/players/"
-
-chromedriver_path = '/usr/bin/chromedriver'
-
-chrome_options = Options()
-chrome_options.add_argument('--headless')
-
-service = Service(chromedriver_path)
-driver = webdriver.Chrome(service=service, options=chrome_options)
-
-for player in players:
-    get_career_games(player)
-
-driver.quit()
+if __name__ == '__main__':
+    players = get_active_players()
+    for player in players:
+        seasons = get_seasons_active(player)
+        head, r_games, p_games = get_career_games(player, seasons)
+        save_career_games(player, head, r_games, p_games)
