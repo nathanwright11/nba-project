@@ -28,7 +28,11 @@ def get_seasons_active(player):
 
 
 def get_career_games(player, seasons):
-    """Scrapes and returns regular and playoff games stats of entire career."""
+    """Scrapes and returns regular and playoff games stats of entire career.
+    
+    Goes season by season and collects all regular and playoff game stats.
+    'Type' category added to indicate regular or playoff game.
+    """
     chromedriver_path = '/usr/bin/chromedriver'
     chrome_options = Options()
     chrome_options.add_argument('--headless')
@@ -38,8 +42,7 @@ def get_career_games(player, seasons):
     _ = 0       #  Temp variable grabs csv header on first iteration only
     player_url = "https://www.basketball-reference.com/players/"
     first, last = player.lower().split()
-    r_games = []
-    p_games = []
+    games = []
     for season in seasons:
         driver.get(player_url 
                    + f"{last[:1]}/{last[:5]}{first[:2]}01/gamelog/" 
@@ -50,50 +53,40 @@ def get_career_games(player, seasons):
         r_table = driver.find_element(By.ID, 'pgl_basic')
         for row in r_table.find_elements(By.XPATH, './/tbody/tr'):
             row_data = [td.text for td in row.find_elements(By.XPATH, './/td')]
+            row_data.append('regular')
             if row_data:
-                r_games.append(row_data)
+                games.append(row_data)
                 
         if driver.find_elements(By.ID, 'pgl_basic_playoffs'):
             p_table = driver.find_element(By.ID, 'pgl_basic_playoffs')
             for row in p_table.find_elements(By.XPATH, './/tbody/tr'):
                 row_data = [td.text for td in row.find_elements(By.XPATH, './/td')]
+                row_data.append('playoff')
                 if row_data:
-                    p_games.append(row_data)
+                    games.append(row_data)
 
         if _ == 0:
-            head = [th.text for th in r_table.find_elements(By.XPATH, './/thead/tr/th')]
-            head.remove('Rk')       #  Rank data ignored in game stat scraping
+            headers = [th.text for th in r_table.find_elements(By.XPATH, './/thead/tr/th')]
+            headers.remove('Rk')       #  Rank data ignored in game stat scraping
+            headers.append('Type')
         _ += 1
     driver.quit()
     print(f'{last} scrape success')
-    return head, r_games, p_games
+    return headers, games
 
 
-def save_career_games(player, header, regular_games, playoff_games):
-    """Creates separate csv for regular and playoff career games"""
+def save_career_games(player, headers, games):
+    """Creates combined csv of regular and playoff career games"""
     first, last = player.lower().split()
-    r_path = f'stats/{last[:5]}{first[:2]}_regular_games.csv'
-    p_path = f'stats/{last[:5]}{first[:2]}_playoff_games.csv'
-    
-    with open(r_path, 'w', newline="") as f:
+    with open(f'stats/{last[:5]}{first[:2]}_games.csv', 'w', newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(header)
+        writer.writerow(headers)
         f.close()
-    for game in regular_games:
-        with open(r_path, 'a', newline="") as f:
+    for game in games:
+        with open(f'stats/{last[:5]}{first[:2]}_games.csv', 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(game)
             f.close()
-    if playoff_games:
-        with open(p_path, 'w', newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(header)
-            f.close()
-        for game in playoff_games:
-            with open(p_path, 'a', newline="") as f:
-                writer = csv.writer(f)
-                writer.writerow(game)
-                f.close()
     print(f'{last} csv created')
 
 
@@ -101,5 +94,5 @@ if __name__ == '__main__':
     players = get_active_players()
     for player in players:
         seasons = get_seasons_active(player)
-        head, r_games, p_games = get_career_games(player, seasons)
-        save_career_games(player, head, r_games, p_games)
+        headers, games = get_career_games(player, seasons)
+        save_career_games(player, headers, games)

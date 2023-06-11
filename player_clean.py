@@ -4,17 +4,14 @@ from active_players import get_active_players
 
 
 def clean_games(file):
-    """Removes unnecessary rows & columns, adds regular/playoff label as column.
+    """Removes unnecessary rows & columns.
     
-    1. Removes columns with no useable data. 
-    2. Removes games which player was not active (eg. Inactive, DND, DNP, etc.). 
-    3. Adds label for each game whether it was regular season or playoffs.
+    Removes columns with no useable data, and games which player was not 
+    active (eg. Inactive, DND, DNP, etc.). 
     """
     df = pd.read_csv(file)
     df.drop(columns=[' ', ' .1'], inplace=True)
     df.dropna(subset='MP', inplace=True)
-    type = file.split('_')[1]
-    df = df.assign(Type=type)
     return df
 
 
@@ -43,15 +40,10 @@ if __name__ == '__main__':
     players = get_active_players()
     for player in players:
         first, last = player.lower().split()
-        reg_games = f"./stats/{last[:5]}{first[:2]}_regular_games.csv"
-        p_games = f"./stats/{last[:5]}{first[:2]}_playoff_games.csv"
-
-        reg_games = clean_games(reg_games)
-        p_games = clean_games(p_games)
-
-        games = pd.concat([reg_games, p_games], ignore_index=True)
+        games_fp = f"./stats/{last[:5]}{first[:2]}_games.csv"
+        games = clean_games(games_fp)
         games['Season'] = [s_label(date) for date in games['Date']]
         games = date_sort(games)
-
-        games.to_csv(f"./stats/{last[:5]}{first[:2]}_games.csv")
-        print(f"{last} clean: success")
+        games.to_csv(games_fp)
+        
+        print(f"{last} clean success")
