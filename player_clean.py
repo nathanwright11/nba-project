@@ -37,7 +37,16 @@ def s_label(date):
 
 
 if __name__ == '__main__':
-    players = get_active_players()
+    players = [#'Stephen Curry',
+           #'Lebron James',
+           #'Jayson Tatum',
+           #'Jimmy Butler', 
+           #'Nikola Jokic',
+           #'Kevin Durant',
+           #'Joel Embiid',
+           'Giannis Antetokounmpo'
+           ]
+    #players = get_active_players()
     for player in players:
         first, last = player.lower().split()
         games_fp = f"./stats/{last[:5]}{first[:2]}_games.csv"
