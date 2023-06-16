@@ -3,7 +3,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from string import ascii_lowercase
-from time import sleep
+from time import sleep, time
 
 
 def get_active_players():
@@ -19,19 +19,28 @@ def get_active_players():
     
     player_list_url = "https://www.basketball-reference.com/players/"
     players = {}
+    req_count = 0
+    beg = time()
     for x in list(ascii_lowercase):
+        if (time() - beg) > 60:
+            beg = time()
+            req_count = 0
+        if req_count == 20:
+            wait = 65 - (time() - beg)
+            print(f"Request limit reached. Pausing for {wait:.2f} seconds")
+            sleep(wait)
         try:
             driver.get(player_list_url+x)
         except:
             continue
         driver.get(player_list_url+x)
-        sleep(10)       #Avoids sending more than 20 API reqs per min
         table = driver.find_element(By.ID, 'players')
         bold_names = table.find_elements(By.CSS_SELECTOR, 'strong')
         for name in bold_names:
             player = name.text
             url = name.find_element(By.TAG_NAME, 'a').get_attribute('href')
             players[player] = url
+        req_count += 2
     driver.quit()
     return players
 

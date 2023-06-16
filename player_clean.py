@@ -37,13 +37,13 @@ def s_label(date):
 
 
 if __name__ == '__main__':
-    players = [#'Stephen Curry',
-           #'Lebron James',
-           #'Jayson Tatum',
-           #'Jimmy Butler', 
-           #'Nikola Jokic',
-           #'Kevin Durant',
-           #'Joel Embiid',
+    players = ['Stephen Curry',
+           'Lebron James',
+           'Jayson Tatum',
+           'Jimmy Butler', 
+           'Nikola Jokic',
+           'Kevin Durant',
+           'Joel Embiid',
            'Giannis Antetokounmpo'
            ]
     #players = get_active_players()

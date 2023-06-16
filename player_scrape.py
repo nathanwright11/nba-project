@@ -2,13 +2,13 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from time import sleep
+from time import sleep, time
 import csv
 
 from active_players import get_active_players
 
 
-def get_seasons_active(player):
+def get_seasons_active(player_url):
     """Returns list of seasons player was active"""
     chromedriver_path = '/usr/bin/chromedriver'
     chrome_options = Options()
@@ -19,27 +19,20 @@ def get_seasons_active(player):
     service = Service(chromedriver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
     
-    player_url = "https://www.basketball-reference.com/players/"
-    first, last = player.lower().split()
-    driver.get(player_url 
-               + f"{last[:1]}/{last[:5]}{first[:2]}01.html"
-               )
+    driver.get(player_url)
     table = driver.find_element(By.ID, 'per_game')
     seasons = [th.text for th in table.find_elements(By.XPATH, './/tbody/tr/th')]
     driver.quit()
     return list(set(seasons))
 
 
-def get_gamelog(player, season, i):
+def get_gamelog(player_url, season, i):
     """Makes API request for current season then scrapes game stats"""
-    player_url = "https://www.basketball-reference.com/players/"
-    first, last = player.lower().split()
     games = []
-    driver.get(player_url 
-               + f"{last[:1]}/{last[:5]}{first[:2]}01/gamelog/" 
+    driver.get(player_url[:-5] 
+               + "/gamelog/" 
                + str(int(season[:4])+1)
                )
-    sleep(2)     #Avoids more than 20 API reqs per min
     
     r_table = driver.find_element(By.ID, 'pgl_basic')
     for row in r_table.find_elements(By.XPATH, './/tbody/tr'):
@@ -62,25 +55,22 @@ def get_gamelog(player, season, i):
         headers.append('Type')
     else:
         headers = []
-
-    print(f'{last} {season} scrape success')
     return headers, games
 
 
-def save_gamelog(player, headers, games, i):
+def save_gamelog(player_url, headers, games, i):
     """Adds game stats from current season to player csv"""
-    first, last = player.lower().split()
+    name = player_url.split('/')[-1].split('.')[0]
     if i == 0:
-        with open(f'stats/{last[:5]}{first[:2]}_games.csv', 'w', newline="") as f:
+        with open(f'stats/{name}_games.csv', 'w', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             f.close()
     for game in games:
-        with open(f'stats/{last[:5]}{first[:2]}_games.csv', 'a', newline="") as f:
+        with open(f'stats/{name}_games.csv', 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(game)
             f.close()
-    print(f'games saved')
 
 
 if __name__ == '__main__':
@@ -91,24 +81,24 @@ if __name__ == '__main__':
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--disable-gpu')
     
-    players = ['Stephen Curry',
-        'Lebron James',
-        'Jayson Tatum',
-        'Jimmy Butler', 
-        'Nikola Jokic',
-        'Kevin Durant',
-        'Joel Embiid',
-        'Giannis Antetokounmpo'
-        ]
-    #players = get_active_players()
-    for player in players:
+    players = get_active_players()
+    for player, url in players.items():
         service = Service(chromedriver_path)
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
-        seasons = get_seasons_active(player)
-        #headers, games = get_career_games(player, seasons)
+        seasons = get_seasons_active(url)
+        req_count = 1
+        beg = time()
         for i, season in enumerate(seasons):
-            headers, games = get_gamelog(player, season, i)
-            save_gamelog(player, headers, games, i)
-
+            if (time() - beg) > 60:
+                beg = time()
+                req_count = 0
+            if req_count == 20:
+                wait = 65 - (time() - beg)
+                print(f"Request limit reached. Pausing for {wait:.2f} seconds")
+                sleep(wait)
+            headers, games = get_gamelog(url, season, i)
+            save_gamelog(url, headers, games, i)
+            req_count += 1
+        print(f'{player} games saved')
         driver.quit()
