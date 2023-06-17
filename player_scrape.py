@@ -88,15 +88,13 @@ if __name__ == '__main__':
         
         seasons = get_seasons_active(url)
         req_count = 1
+        req_limit = 15
+        req_window = 65
         beg = time()
         for i, season in enumerate(seasons):
-            if (time() - beg) > 60:
-                beg = time()
-                req_count = 0
-            if req_count == 20:
-                wait = 65 - (time() - beg)
-                print(f"Request limit reached. Wait {wait:.2f} seconds")
-                sleep(wait)
+            if req_count == req_limit:
+                print(f"Request limit reached. {req_window} second timeout")
+                sleep(req_window + 5)
             headers, games = get_gamelog(url, season, i)
             save_gamelog(url, headers, games, i)
             req_count += 1

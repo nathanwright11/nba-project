@@ -20,26 +20,26 @@ def get_active_players():
     player_list_url = "https://www.basketball-reference.com/players/"
     players = {}
     req_count = 0
-    beg = time()
-    for x in list(ascii_lowercase):
-        if (time() - beg) > 60:
-            beg = time()
-        if req_count == 20:
-            wait = 65 - (time() - beg)
-            print(f"Request limit reached. Wait {wait:.2f} seconds")
-            sleep(wait)
-        try:
-            driver.get(player_list_url+x)
-        except:
-            continue
-        driver.get(player_list_url+x)
+    req_limit = 15
+    req_window = 65
+    for letter in list(ascii_lowercase):
+        if req_count == req_limit:
+            print(f"Request limit reached. {req_window} second timeout")
+            sleep(req_window + 5)
+        if letter == 'x':
+            try:
+                driver.get(player_list_url+letter)
+            except:
+                continue
+        driver.get(player_list_url+letter)
         table = driver.find_element(By.ID, 'players')
         bold_names = table.find_elements(By.CSS_SELECTOR, 'strong')
         for name in bold_names:
             player = name.text
             url = name.find_element(By.TAG_NAME, 'a').get_attribute('href')
             players[player] = url
-        req_count += 2
+        req_count += 1
+        print(f'{letter} scraped')
     driver.quit()
     return players
 
