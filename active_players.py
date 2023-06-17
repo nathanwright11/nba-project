@@ -24,10 +24,9 @@ def get_active_players():
     for x in list(ascii_lowercase):
         if (time() - beg) > 60:
             beg = time()
-            req_count = 0
         if req_count == 20:
             wait = 65 - (time() - beg)
-            print(f"Request limit reached. Pausing for {wait:.2f} seconds")
+            print(f"Request limit reached. Wait {wait:.2f} seconds")
             sleep(wait)
         try:
             driver.get(player_list_url+x)

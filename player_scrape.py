@@ -95,7 +95,7 @@ if __name__ == '__main__':
                 req_count = 0
             if req_count == 20:
                 wait = 65 - (time() - beg)
-                print(f"Request limit reached. Pausing for {wait:.2f} seconds")
+                print(f"Request limit reached. Wait {wait:.2f} seconds")
                 sleep(wait)
             headers, games = get_gamelog(url, season, i)
             save_gamelog(url, headers, games, i)

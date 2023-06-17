@@ -37,22 +37,13 @@ def s_label(date):
 
 
 if __name__ == '__main__':
-    players = ['Stephen Curry',
-           'Lebron James',
-           'Jayson Tatum',
-           'Jimmy Butler', 
-           'Nikola Jokic',
-           'Kevin Durant',
-           'Joel Embiid',
-           'Giannis Antetokounmpo'
-           ]
-    #players = get_active_players()
-    for player in players:
-        first, last = player.lower().split()
-        games_fp = f"./stats/{last[:5]}{first[:2]}_games.csv"
+    players = get_active_players()
+    for player, url in players.items():
+        name = url.split('/')[-1].split('.')[0]
+        games_fp = f"./stats/{name}_games.csv"
         games = clean_games(games_fp)
         games['Season'] = [s_label(date) for date in games['Date']]
         games = date_sort(games)
         games.to_csv(games_fp)
         
-        print(f"{last} clean success")
+        print(f"{player} clean success")
