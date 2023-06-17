@@ -1,4 +1,4 @@
-# nba-project
+# Basketball-Reference.com Selenium Web Scraper
 Extracts and transforms player data from basketball-reference.com using Selenium and Pandas. 
 
 Player_scrape grabs the gamelog stat data for the entire career of all active players (as listed by basketball-reference.com) and saves them to a csv.
