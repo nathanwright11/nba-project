@@ -1,22 +1,19 @@
 import pandas as pd
 
-from active_players import get_active_players
+from get_players import get_players
 
 
-def clean_games(file):
+def clean_games(player_url):
     """Removes unnecessary rows & columns.
     
     Removes columns with no useable data, and games which player was not 
     active (eg. Inactive, DND, DNP, etc.). 
     """
+    file = f"./stats/{player_url.split('/')[-1].split('.')[0]}_games.csv"
     df = pd.read_csv(file)
     df.drop(columns=[' ', ' .1'], inplace=True)
     df.dropna(subset='MP', inplace=True)
-    return df
-
-
-def date_sort(df):
-    """Sorts games in order by date, then resets the df indexes"""
+    df['Season'] = [s_label(date) for date in df['Date']]
     df['Date'] = pd.to_datetime(df['Date'])
     df.sort_values('Date', ascending=True, inplace=True)
     df.reset_index(drop=True, inplace=True)
@@ -37,13 +34,12 @@ def s_label(date):
 
 
 if __name__ == '__main__':
-    players = get_active_players()
+    players = get_players(['Kobe Bryant',
+                           'Lebron James',
+                           'Stephen Curry'
+                           ])
     for player, url in players.items():
-        name = url.split('/')[-1].split('.')[0]
-        games_fp = f"./stats/{name}_games.csv"
-        games = clean_games(games_fp)
-        games['Season'] = [s_label(date) for date in games['Date']]
-        games = date_sort(games)
-        games.to_csv(games_fp)
+        c_games = clean_games(url)
+        c_games.to_csv(f"./stats/{url.split('/')[-1].split('.')[0]}_games.csv")
         
         print(f"{player} clean success")

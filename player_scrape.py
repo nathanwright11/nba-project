@@ -2,10 +2,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from time import sleep, time
+from time import sleep
 import csv
 
-from active_players import get_active_players
+from get_players import get_players
 
 
 def get_seasons_active(player_url):
@@ -29,6 +29,9 @@ def get_seasons_active(player_url):
 def get_gamelog(player_url, season, i):
     """Makes API request for current season then scrapes game stats"""
     games = []
+    if i == 15:
+        print(f"Request limit reached. 65 second timeout")
+        sleep(65)
     driver.get(player_url[:-5] 
                + "/gamelog/" 
                + str(int(season[:4])+1)
@@ -81,22 +84,14 @@ if __name__ == '__main__':
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--disable-gpu')
     
-    players = get_active_players()
+    players = get_players(['Kristaps Porzingis'])
     for player, url in players.items():
         service = Service(chromedriver_path)
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
         seasons = get_seasons_active(url)
-        req_count = 1
-        req_limit = 15
-        req_window = 65
-        beg = time()
         for i, season in enumerate(seasons):
-            if req_count == req_limit:
-                print(f"Request limit reached. {req_window} second timeout")
-                sleep(req_window + 5)
             headers, games = get_gamelog(url, season, i)
             save_gamelog(url, headers, games, i)
-            req_count += 1
         print(f'{player} games saved')
         driver.quit()
