@@ -9,7 +9,7 @@ from get_players import get_players
 
 @api_req_lmtr(req_limit=13, wait=75)
 def get_seasons_active(player_url):
-    """Returns list of seasons player was active"""
+    """Returns list of seasons player was active."""
     r = requests.get('https://www.basketball-reference.com' 
                      + player_url)
     soup = BeautifulSoup(r.text, 'html.parser')
@@ -20,7 +20,12 @@ def get_seasons_active(player_url):
 
 @api_req_lmtr(req_limit=13, wait=75)
 def get_gamelog(player_url, season, i):
-    """Makes API request for current season then scrapes game stats"""
+    """Makes API request for current season then scrapes game stats.
+    
+    Only saves header on first iteration, also adds season type label (regular or
+    playoffs). Playoffs data is commented out of the HTML, so had to jump through
+    extra hoops to grab it.
+    """
     games = []
     r = requests.get('https://www.basketball-reference.com'
                     + player_url[:-5]
@@ -52,7 +57,7 @@ def get_gamelog(player_url, season, i):
 
 
 def save_gamelog(player_url, headers, games, i):
-    """Adds game stats from current season to player csv"""
+    """Saves game stats from current season to player csv."""
     name = player_url.split('/')[-1].split('.')[0]
     if i == 0:
         with open(f'stats/{name}_games.csv', 'w', newline="") as f:
@@ -76,5 +81,4 @@ if __name__ == '__main__':
         for i, season in enumerate(seasons):
             headers, games = get_gamelog(url, season, i)
             save_gamelog(url, headers, games, i)
-
         print(f'{player} games saved')
