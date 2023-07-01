@@ -55,12 +55,12 @@ def save_gamelog(player_url, headers, games, i):
     """Adds game stats from current season to player csv"""
     name = player_url.split('/')[-1].split('.')[0]
     if i == 0:
-        with open(f'stats/{name}Test_games.csv', 'w', newline="") as f:
+        with open(f'stats/{name}_games.csv', 'w', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             f.close()
     for game in games:
-        with open(f'stats/{name}Test_games.csv', 'a', newline="") as f:
+        with open(f'stats/{name}_games.csv', 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(game)
             f.close()
