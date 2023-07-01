@@ -1,63 +1,53 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
+import requests
+from bs4 import BeautifulSoup, Comment
 from time import sleep
 import csv
 
+from api_request_limiter import api_req_lmtr
 from get_players import get_players
 
 
+@api_req_lmtr(req_limit=13, wait=75)
 def get_seasons_active(player_url):
     """Returns list of seasons player was active"""
-    chromedriver_path = '/usr/bin/chromedriver'
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--blink-settings=imagesEnabled=false')
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument('--disable-gpu')
-    service = Service(chromedriver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    
-    driver.get(player_url)
-    table = driver.find_element(By.ID, 'per_game')
-    seasons = [th.text for th in table.find_elements(By.XPATH, './/tbody/tr/th')]
-    driver.quit()
+    r = requests.get('https://www.basketball-reference.com' 
+                     + player_url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    table = soup.find('table', id='per_game')
+    seasons = [th.get_text() for th in table.tbody.select('th[data-stat="season"]')]
     return list(set(seasons))
 
 
+@api_req_lmtr(req_limit=13, wait=75)
 def get_gamelog(player_url, season, i):
     """Makes API request for current season then scrapes game stats"""
     games = []
-    if i == 15:
-        print(f"Request limit reached. 65 second timeout")
-        sleep(65)
-    driver.get(player_url[:-5] 
-               + "/gamelog/" 
-               + str(int(season[:4])+1)
-               )
-    
-    r_table = driver.find_element(By.ID, 'pgl_basic')
-    for row in r_table.find_elements(By.XPATH, './/tbody/tr'):
-        row_data = [td.text for td in row.find_elements(By.XPATH, './/td')]
-        row_data.append('Regular')
-        if row_data:
-            games.append(row_data)
-            
-    if driver.find_elements(By.ID, 'pgl_basic_playoffs'):
-        p_table = driver.find_element(By.ID, 'pgl_basic_playoffs')
-        for row in p_table.find_elements(By.XPATH, './/tbody/tr'):
-            row_data = [td.text for td in row.find_elements(By.XPATH, './/td')]
-            row_data.append('Playoffs')
-            if row_data:
-                games.append(row_data)
-
+    r = requests.get('https://www.basketball-reference.com'
+                    + player_url[:-5]
+                    + '/gamelog/'
+                    + str(int(season[:4])+1))
+    soup = BeautifulSoup(r.text, 'html.parser')
+    table = soup.find('table', id='pgl_basic')
     if i == 0:
-        headers = [th.text for th in r_table.find_elements(By.XPATH, './/thead/tr/th')]
+        headers = [header.get_text() for header in table.thead.find_all('th')]
         headers.remove('Rk')       #  Rank data ignored in game stat scraping
         headers.append('Type')
     else:
         headers = []
+    r_games = table.tbody.find_all('tr')
+    for game in r_games:
+        stats = [stat.get_text() for stat in game.find_all('td')]
+        stats.append('Regular')
+        games.append(stats)
+    if soup.find(string=lambda text: isinstance(text, Comment) and '<tab' in text):
+        c = soup.find(string=lambda text: isinstance(text, Comment) and '<tab' in text)
+        comment_html = BeautifulSoup(c, 'html.parser')
+        p_table = comment_html.find('table')
+        p_games = p_table.tbody.find_all('tr')
+        for game in p_games:
+            stats = [stat.get_text() for stat in game.find_all('td')]
+            stats.append('Playoffs')
+            games.append(stats)
     return headers, games
 
 
@@ -65,33 +55,26 @@ def save_gamelog(player_url, headers, games, i):
     """Adds game stats from current season to player csv"""
     name = player_url.split('/')[-1].split('.')[0]
     if i == 0:
-        with open(f'stats/{name}_games.csv', 'w', newline="") as f:
+        with open(f'stats/{name}Test_games.csv', 'w', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             f.close()
     for game in games:
-        with open(f'stats/{name}_games.csv', 'a', newline="") as f:
+        with open(f'stats/{name}Test_games.csv', 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(game)
             f.close()
 
 
 if __name__ == '__main__':
-    chromedriver_path = '/usr/bin/chromedriver'
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--blink-settings=imagesEnabled=false')
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument('--disable-gpu')
-    
-    players = get_players(['Kristaps Porzingis'])
+    players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry'])
+    print(f'{60} second timeout')
+    sleep(60)
     for player, url in players.items():
-        service = Service(chromedriver_path)
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        
         seasons = get_seasons_active(url)
+        print(f'{player} {len(seasons)} seasons to scrape')
         for i, season in enumerate(seasons):
             headers, games = get_gamelog(url, season, i)
             save_gamelog(url, headers, games, i)
+
         print(f'{player} games saved')
-        driver.quit()

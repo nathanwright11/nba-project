@@ -11,16 +11,17 @@ def clean_games(player_url):
     """
     file = f"./stats/{player_url.split('/')[-1].split('.')[0]}_games.csv"
     df = pd.read_csv(file)
-    df.drop(columns=[' ', ' .1'], inplace=True)
+    df.columns = df.columns.str.strip()
+    df.drop(columns=['', '.1'], inplace=True)
     df.dropna(subset='MP', inplace=True)
-    df['Season'] = [s_label(date) for date in df['Date']]
+    df['Season'] = [season_label(date) for date in df['Date']]
     df['Date'] = pd.to_datetime(df['Date'])
     df.sort_values('Date', ascending=True, inplace=True)
     df.reset_index(drop=True, inplace=True)
     return df
 
 
-def s_label(date):
+def season_label(date):
     """Creates season format for use as data label.
     
     Takes date input (eg. 2010-01-28) and returns output which represents season 
@@ -28,18 +29,14 @@ def s_label(date):
     """
     yr, mon, _ = date.split("-")
     if int(mon) >= 8:
-        return f"{yr[-2:]}-{int(yr[-2:])+1}"
+        return f'{yr[-2:]}-{int(yr[-2:])+1}'
     else:
-        return f"{int(yr[-2:])-1:02d}-{yr[-2:]}"
+        return f'{int(yr[-2:])-1:02d}-{yr[-2:]}'
 
 
 if __name__ == '__main__':
-    players = get_players(['Kobe Bryant',
-                           'Lebron James',
-                           'Stephen Curry'
-                           ])
+    players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry'])
     for player, url in players.items():
-        c_games = clean_games(url)
-        c_games.to_csv(f"./stats/{url.split('/')[-1].split('.')[0]}_games.csv")
-        
-        print(f"{player} clean success")
+        df_clean = clean_games(url)
+        df_clean.to_csv(f"./stats/{url.split('/')[-1].split('.')[0]}_games.csv")
+        print(f'{player} clean success')
