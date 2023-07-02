@@ -7,7 +7,7 @@ from api_request_limiter import api_req_lmtr
 from get_players import get_players
 
 
-@api_req_lmtr(req_limit=13, wait=75)
+@api_req_lmtr(req_limit=13, wait=90)
 def get_seasons_active(player_url):
     """Returns list of seasons player was active."""
     r = requests.get('https://www.basketball-reference.com' 
@@ -18,7 +18,7 @@ def get_seasons_active(player_url):
     return list(set(seasons))
 
 
-@api_req_lmtr(req_limit=13, wait=75)
+@api_req_lmtr(req_limit=13, wait=90)
 def get_gamelog(player_url, season, i):
     """Makes API request for current season then scrapes game stats.
     
@@ -74,8 +74,8 @@ def save_gamelog(player_url, headers, games, i):
 if __name__ == '__main__':
     players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry'])
     if (len(players) % 13) != 0:
-        print('60 second timeout')
-        sleep(60)
+        print('90 second timeout')
+        sleep(90)
     for player, url in players.items():
         seasons = get_seasons_active(url)
         print(f'{player} {len(seasons)} seasons to scrape')

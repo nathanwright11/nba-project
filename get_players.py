@@ -19,8 +19,8 @@ def get_players(players):
     if players == 'active':
         for i, letter in enumerate(list(ascii_lowercase)):
             if (i % 13) == 0 and i != 0:
-                print("Request limit reached. 75 second timeout")
-                sleep(75)
+                print("Request limit reached. 90 second timeout")
+                sleep(90)
             if letter == 'x':
                 try:
                     requests.get(player_list_url+letter)
@@ -41,8 +41,8 @@ def get_players(players):
         player_letter = list(set(player_last))
         for i, letter in enumerate(player_letter):
             if (i % 13) == 0 and i != 0:
-                print("Request limit reached. 75 second timeout")
-                sleep(75)
+                print("Request limit reached. 90 second timeout")
+                sleep(90)
             r = requests.get(player_list_url+letter)
             soup = BeautifulSoup(r.text, 'html.parser')
             table = soup.find('table', id='players')
@@ -57,5 +57,5 @@ def get_players(players):
 
 
 if __name__ == '__main__':
-    players = get_players('active')
+    players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry'])
     print(players)

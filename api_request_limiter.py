@@ -1,7 +1,7 @@
 from time import sleep
 
 
-def api_req_lmtr(req_limit=13, wait=75):
+def api_req_lmtr(req_limit=13, wait=90):
     """Ensures all API requests comply with bbref restrictions."""
     def decorator(func):
         def wrapper(*args, **kwargs):
