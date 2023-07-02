@@ -57,5 +57,5 @@ def get_players(players):
 
 
 if __name__ == '__main__':
-    players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry'])
+    players = get_players('active')
     print(players)

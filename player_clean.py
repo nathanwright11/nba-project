@@ -21,7 +21,7 @@ def clean_games(player_url):
 
 
 if __name__ == '__main__':
-    players = get_players('active')
+    players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry'])
     for player, url in players.items():
         df_clean = clean_games(url)
         df_clean.to_csv(f"./stats/{url.split('/')[-1].split('.')[0]}_games.csv")
