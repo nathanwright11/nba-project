@@ -13,7 +13,7 @@ def clean_games(player_url):
     df = pd.read_csv(file)
     df.columns = df.columns.str.strip()
     df.drop(columns=['', '.1'], inplace=True)
-    df.dropna(subset='MP', inplace=True)
+    df.dropna(subset='G', inplace=True)
     df['Date'] = pd.to_datetime(df['Date'])
     df.sort_values('Date', ascending=True, inplace=True)
     df.reset_index(drop=True, inplace=True)
