@@ -3,3 +3,4 @@ stats/
 __pycache__/
 .venv/
 test.py
+database/
