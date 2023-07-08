@@ -4,4 +4,4 @@ Extracts and transforms player data from basketball-reference.com using requests
 As an NBA fan, I made this to have access to players' data for some casual exploration & visualization. Basketball-reference has stated they are okay with web scraping, as long as there are no more than 20 requests per minute, as of today. If you break this rule, they will lock you out for 1 hour. In the past, I have been locked out for between 15-20 requests, so this function keeps it to lucky number 13, and then waits 90 seconds to avoid being locked out by bbref. I was able to scrape all active players' games stats using this method. 
 BBref data scraping policy: https://www.sports-reference.com/bot-traffic.html
 
-Future improvements include adding option to choose seasons to scrape, and an option to scrape Hall of Fame players.
+Future improvements include adding option to choose seasons to scrape, an option to scrape Hall of Fame players, and grabbing team data.
