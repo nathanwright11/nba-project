@@ -39,7 +39,7 @@ def get_gamelog(player_url, season, i):
         headers.append('Type')
     else:
         headers = []
-    r_games = table.tbody.find_all('tr')
+    r_games = table.tbody.select('[id*=pgl_basic]')
     for game in r_games:
         stats = [stat.get_text() for stat in game.find_all('td')]
         stats.append('Regular')
@@ -48,7 +48,7 @@ def get_gamelog(player_url, season, i):
         c = soup.find(string=lambda text: isinstance(text, Comment) and '<tab' in text)
         comment_html = BeautifulSoup(c, 'html.parser')
         p_table = comment_html.find('table')
-        p_games = p_table.tbody.find_all('tr')
+        p_games = p_table.tbody.select('[id*=pgl_basic_playoffs]')
         for game in p_games:
             stats = [stat.get_text() for stat in game.find_all('td')]
             stats.append('Playoffs')
@@ -60,20 +60,20 @@ def save_gamelog(player_url, headers, games, i):
     """Saves game stats from current season to player csv."""
     name = player_url.split('/')[-1].split('.')[0]
     if i == 0:
-        with open(f'stats/{name}_games.csv', 'w', newline="") as f:
+        with open(f'../stats/{name}_games.csv', 'w', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             f.close()
     for game in games:
-        with open(f'stats/{name}_games.csv', 'a', newline="") as f:
+        with open(f'../stats/{name}_games.csv', 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(game)
             f.close()
 
 
 if __name__ == '__main__':
-    players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry'])
-    if (len(players) % 13) != 0:
+    players = get_players(['Steven Adams'])
+    if (len(players) % 13) == 0:
         print('90 second timeout')
         sleep(90)
     for player, url in players.items():
