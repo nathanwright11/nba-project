@@ -35,6 +35,8 @@ def get_players(players):
                 url = name.get('href')
                 players_dict[player] = url
                 print(f'{player} url saved')
+        print('90 second timeout')
+        sleep(90)
     else:
         players = [player.lower() for player in players]
         player_last = [player.split()[1][0] for player in players]

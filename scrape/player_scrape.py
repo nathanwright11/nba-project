@@ -72,7 +72,7 @@ def save_gamelog(player_url, headers, games, i):
 
 
 if __name__ == '__main__':
-    players = get_players(['Steven Adams'])
+    players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry',])
     if (len(players) % 13) == 0:
         print('90 second timeout')
         sleep(90)

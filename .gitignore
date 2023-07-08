@@ -1,6 +1,6 @@
 ##########
 stats/
 __pycache__/
-.venv/
-test.py
 database/
+scrape/.env-scrape/
+scrape/test.py
