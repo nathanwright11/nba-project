@@ -5,3 +5,4 @@ As an NBA fan, I made this to have access to players' data for some casual explo
 BBref data scraping policy: https://www.sports-reference.com/bot-traffic.html
 
 Future improvements include adding option to choose seasons to scrape, an option to scrape Hall of Fame players, and grabbing team data.
+Currently working on a postgresql database to do quick exploration and large calculations.
