@@ -52,6 +52,6 @@ if __name__ == '__main__':
     players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry',])
     for player, url in players.items():
         df_clean = clean_games(url)
-        df_clean.to_csv(f"../stats/{url.split('/')[-1].split('.')[0]}Test_games.csv", 
+        df_clean.to_csv(f"../stats/{url.split('/')[-1].split('.')[0]}_games.csv", 
                         index=False)
         print(f'{player} clean success')
