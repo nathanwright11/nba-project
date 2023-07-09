@@ -2,8 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from string import ascii_lowercase
 from unidecode import unidecode
-from time import sleep
-from re import sub
+import time
+import re
 
 
 def get_players(players):
@@ -20,7 +20,7 @@ def get_players(players):
         for i, letter in enumerate(list(ascii_lowercase)):
             if (i % 13) == 0 and i != 0:
                 print("Request limit reached. 90 second timeout")
-                sleep(90)
+                time.sleep(90)
             if letter == 'x':
                 try:
                     requests.get(player_list_url+letter)
@@ -35,8 +35,6 @@ def get_players(players):
                 url = name.get('href')
                 players_dict[player] = url
                 print(f'{player} url saved')
-        print('90 second timeout')
-        sleep(90)
     else:
         players = [player.lower() for player in players]
         player_last = [player.split()[1][0] for player in players]
@@ -44,14 +42,14 @@ def get_players(players):
         for i, letter in enumerate(player_letter):
             if (i % 13) == 0 and i != 0:
                 print("Request limit reached. 90 second timeout")
-                sleep(90)
+                time.sleep(90)
             r = requests.get(player_list_url+letter)
             soup = BeautifulSoup(r.text, 'html.parser')
             table = soup.find('table', id='players')
             p_list = [th for th in table.tbody.find_all('th')]
             for p in p_list:
-                if unidecode(sub(r'\*', '', p.get_text())).lower() in players:
-                    name = sub(r'\*', '', p.get_text())
+                if unidecode(re.sub(r'\*', '', p.get_text())).lower() in players:
+                    name = re.sub(r'\*', '', p.get_text())
                     url = p.a.get('href')
                     players_dict[name] = url
                     print(f'{name} url saved')

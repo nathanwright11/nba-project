@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup, Comment
-from time import sleep
+import time
 import csv
 
 from api_request_limiter import api_req_lmtr
@@ -73,9 +73,8 @@ def save_gamelog(player_url, headers, games, i):
 
 if __name__ == '__main__':
     players = get_players(['Kobe Bryant', 'Lebron James', 'Stephen Curry',])
-    if (len(players) % 13) == 0:
-        print('90 second timeout')
-        sleep(90)
+    print('90 second timeout')
+    time.sleep(90)
     for player, url in players.items():
         seasons = get_seasons_active(url)
         print(f'{player} {len(seasons)} seasons to scrape')
