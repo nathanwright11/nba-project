@@ -1,6 +1,6 @@
 ##########
 stats/
-__pycache__/
+scrape/__pycache__/
 database/
 scrape/.env-scrape/
 scrape/test.py
