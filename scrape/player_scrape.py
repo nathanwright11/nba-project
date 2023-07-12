@@ -1,7 +1,9 @@
-import requests
-from bs4 import BeautifulSoup, Comment
-import time
 import csv
+import os
+import time
+
+from bs4 import BeautifulSoup, Comment
+import requests
 
 from api_request_limiter import api_req_lmtr
 from get_players import get_players
@@ -57,15 +59,20 @@ def get_gamelog(player_url, season, i):
 
 
 def save_gamelog(player_url, headers, games, i):
-    """Saves game stats from current season to player csv."""
+    """Saves game stats from current season to player csv in stats folder."""
     name = player_url.split('/')[-1].split('.')[0]
+    folder = '../stats'
+    player_file = os.path.join(folder, f'{name}_games.csv')
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    
     if i == 0:
-        with open(f'../stats/{name}_games.csv', 'w', newline="") as f:
+        with open(player_file, 'w', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             f.close()
     for game in games:
-        with open(f'../stats/{name}_games.csv', 'a', newline="") as f:
+        with open(player_file, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(game)
             f.close()

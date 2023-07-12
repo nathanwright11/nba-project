@@ -1,9 +1,10 @@
-import requests
+import re
+import time
+
 from bs4 import BeautifulSoup
+import requests
 from string import ascii_lowercase
 from unidecode import unidecode
-import time
-import re
 
 
 def get_players(players):
