@@ -12,11 +12,11 @@ def clean_games(player_url):
     file = f"../stats/{player_url.split('/')[-1].split('.')[0]}_games.csv"
     df = pd.read_csv(file)
     df.columns = df.columns.str.strip()
-    df.drop(columns=['', '.1'], inplace=True)
+    df = df.drop(columns=['', '.1'])
     df['Date'] = pd.to_datetime(df['Date'])
     df['Season'] = [season_label(date) for date in df['Date']]
-    df.sort_values('Date', ascending=True, inplace=True)
-    df.reset_index(drop=True, inplace=True)
+    df = df.sort_values('Date', ascending=True)
+    df = df.reset_index(drop=True)
     return df
 
 
