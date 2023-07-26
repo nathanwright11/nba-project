@@ -32,20 +32,20 @@ def season_label(date):
         if int(mon) >= 11:
             date1 = date + pd.DateOffset(years=1)
             yr1 = date1.year
-            return f"{yr}-{yr1}"
+            return f"{str(yr)[-2:]}-{str(yr1)[-2:]}"
         else:
             date1 = date - pd.DateOffset(years=1)
             yr1 = date1.year
-            return f"{yr1}-{yr}"
+            return f"{str(yr1)[-2:]}-{str(yr)[-2:]}"
     else:
         if int(mon) >= 8:
             date1 = date + pd.DateOffset(years=1)
             yr1 = date1.year
-            return f"{yr}-{yr1}"
+            return f"{str(yr)[-2:]}-{str(yr1)[-2:]}"
         else:
             date1 = date - pd.DateOffset(years=1)
             yr1 = date1.year
-            return f"{yr1}-{yr}"
+            return f"{str(yr1)[-2:]}-{str(yr)[-2:]}"
 
 
 if __name__ == '__main__':
