@@ -24,7 +24,7 @@ def season_label(date):
     """Creates season format for use as data label.
     
     Takes date input (eg. 2010-01-28) and returns output which represents season 
-    the game occured (eg. 2009-2010). 
+    the game occured (eg. 09-10). 
     """
     yr = date.year
     mon = date.month
